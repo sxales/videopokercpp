@@ -29,6 +29,7 @@ private:
 	const int MAXLEVEL = 7;
 	const float SCREENRATIO = 0.2;
 	const int DEMO_DELAY = 100;
+	const int SCORE_DELAY = 10;
 	int _dealer = 0;
 	int _tick = 0, _nexttick = 0, _index = 0;
 	int _fontsize = 48;

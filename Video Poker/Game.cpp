@@ -320,7 +320,7 @@ void Game::update() {
 		else if (!hold[_index]) hand[_index++] = shoe.deal();
 	}
 	else if (_state == score) {
-		_nexttick = _tick + 5;
+		_nexttick = _tick + SCORE_DELAY - 2;
 		outcome = evaluate();
 		
 		int fs = (SCREEN_WIDTH * SCREENRATIO) / 9;
@@ -330,7 +330,7 @@ void Game::update() {
 
 		if (outcome < nothing) {
 			std::string txt = translate_outcome(outcome);
-			_messages.push_back(Message(txt, logo, hpos, vpos, _fontsize, 7));
+			_messages.push_back(Message(txt, logo, hpos, vpos, _fontsize, SCORE_DELAY));
 			bank += bet * PAYOUT[outcome];
 		}
 
