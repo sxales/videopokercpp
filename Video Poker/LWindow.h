@@ -36,6 +36,9 @@ public:
 	bool hasKeyboardFocus();
 	bool isMinimized();
 	bool isShown();
+	bool isFullScreen();
+
+	void toggleFullScreen();
 
 	//Window data
 	SDL_Window* mWindow;

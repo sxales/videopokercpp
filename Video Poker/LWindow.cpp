@@ -225,3 +225,22 @@ bool LWindow::isShown()
 {
 	return mShown;
 }
+
+bool LWindow::isFullScreen() 
+{
+	return mFullScreen;
+}
+
+void LWindow::toggleFullScreen() 
+{
+	int outcome = -1;
+	if (mFullScreen) 
+	{
+		outcome = SDL_SetWindowFullscreen(mWindow, 0);
+	}
+	else {
+		outcome = SDL_SetWindowFullscreen(mWindow, SDL_WINDOW_FULLSCREEN_DESKTOP);
+	}
+
+	if (outcome == 0) mFullScreen = !mFullScreen;
+}

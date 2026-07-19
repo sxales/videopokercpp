@@ -1,0 +1,13 @@
+WindowTitle = Video Poker
+WindowWidth = 1280
+WindowHeight = 720
+UpdatesPerSecond = 5
+CardTexture = Data/Textures/cards.png
+CardWidth = 71
+CardHeight = 96
+DealerTexture = Data/Textures/dealer_all_small_pixelated.png
+DealerSize = 256
+MaxDealer = 8
+MaxLevel = 7
+DemoDelay = 100
+ScoreDelay = 10

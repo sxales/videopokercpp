@@ -138,21 +138,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\Externals\imgui\imconfig.h" />
-    <ClInclude Include="..\Externals\imgui\imgui.h" />
-    <ClInclude Include="..\Externals\imgui\imgui_impl_opengl3.h" />
-    <ClInclude Include="..\Externals\imgui\imgui_impl_opengl3_loader.h" />
-    <ClInclude Include="..\Externals\imgui\imgui_impl_sdl2.h" />
-    <ClInclude Include="..\Externals\imgui\imgui_impl_sdlrenderer2.h" />
-    <ClInclude Include="..\Externals\imgui\imgui_internal.h" />
-    <ClInclude Include="..\Externals\imgui\imstb_rectpack.h" />
-    <ClInclude Include="..\Externals\imgui\imstb_textedit.h" />
-    <ClInclude Include="..\Externals\imgui\imstb_truetype.h" />
+    <ClInclude Include="BitmapFont.h" />
     <ClInclude Include="Button.h" />
     <ClInclude Include="Card.h" />
+    <ClInclude Include="ConfigManager.h" />
+    <ClInclude Include="Event.h" />
+    <ClInclude Include="EventManager.h" />
     <ClInclude Include="Game.h" />
-    <ClInclude Include="Hand.h" />
+    <ClInclude Include="GenericListener.h" />
     <ClInclude Include="Listener.h" />
+    <ClInclude Include="PlayScene.h" />
+    <ClInclude Include="Hand.h" />
     <ClInclude Include="LTexture.h" />
     <ClInclude Include="LWindow.h" />
     <ClInclude Include="Message.h" />
@@ -160,18 +156,11 @@
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneManager.h" />
-    <ClInclude Include="Splash.h" />
+    <ClInclude Include="SplashScene.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Externals\imgui\imgui.cpp" />
-    <ClCompile Include="..\Externals\imgui\imgui_demo.cpp" />
-    <ClCompile Include="..\Externals\imgui\imgui_draw.cpp" />
-    <ClCompile Include="..\Externals\imgui\imgui_impl_opengl3.cpp" />
-    <ClCompile Include="..\Externals\imgui\imgui_impl_sdl2.cpp" />
-    <ClCompile Include="..\Externals\imgui\imgui_impl_sdlrenderer2.cpp" />
-    <ClCompile Include="..\Externals\imgui\imgui_tables.cpp" />
-    <ClCompile Include="..\Externals\imgui\imgui_widgets.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="PlayScene.cpp" />
     <ClCompile Include="LTexture.cpp" />
     <ClCompile Include="LWindow.cpp" />
     <ClCompile Include="main.cpp" />

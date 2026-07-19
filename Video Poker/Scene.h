@@ -4,12 +4,15 @@
 #define SCENE_H
 
 #include <SDL.h>
-#include "Listener.h"
 
-class Scene : public Subject {
-private:
-	
+class Game;
+
+class Scene {
+protected:
+	Game* m_game = nullptr;
 public:
+	Scene(Game* game) : m_game(game) {};
+
 	virtual void update() {};
 	virtual void render(float interpolation) {};
 	virtual void handleEvents(SDL_Event& e) {}
