@@ -54,7 +54,6 @@ private:
 
 	Button btnhold1, btnhold2, btnhold3, btnhold4, btnhold5;
 	Button btndeal, btndraw;
-	Button btnincrease, btndecrease, btnconfirm;
 	Button btndealer;
 	Button btnquityes, btnquitno;
 	bool show_quit_confirmation = false;
@@ -84,6 +83,7 @@ public:
 	void handleEvents(SDL_Event& e);
 	void start_demo();
 	void select_dealer(int d);
+	void set_bet(int b);
 };
 
 #endif

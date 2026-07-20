@@ -13,21 +13,25 @@
 #include "TitleScene.h"
 #include "PlayScene.h"
 #include "CharacterSelectScene.h"
+#include "SetBetScene.h"
 
 Game::Game(const std::string config) {
 	config_manager = new ConfigManager(config);
 
 	create_window();
 
+	//pre-load iamge assets
 	resource_manager = new ResourceManager(m_window->mRenderer);
-
 	resource_manager->addAsset("characters", config_manager->getString("CharacterTexture"));
 	resource_manager->addAsset("cards", config_manager->getString("CardTexture"));
 	resource_manager->addAsset("dealer", config_manager->getString("DealerTexture"));
 	resource_manager->addAsset("heart", config_manager->getString("HeartTexture"));
-	resource_manager->addAsset("font", "Data/Textures/font.png");
-	resource_manager->addAsset("tileset", "Data/Textures/tiles.png");
-	resource_manager->addAsset("royalflush", "Data/Textures/ROYALFLUSH.png");
+	resource_manager->addAsset("font", config_manager->getString("FontTexture"));
+	resource_manager->addAsset("tileset", config_manager->getString("TilesetTexture"));
+	resource_manager->addAsset("royalflush", config_manager->getString("IconTexture"));
+
+	//Initialize scene manager
+	scene_manager = new SceneManager();
 
 	//scene transition events
 	event_manager = new EventManager();
@@ -46,13 +50,22 @@ Game::Game(const std::string config) {
 		scene_manager->swapScene(new TitleScene(this));
 		}));
 	event_manager->subscribe<CharacterSelected>(new GenericListener(nullptr, [&](Scene* _scene, const Event* evt) {
-		PlayScene* scene = new PlayScene(this);
+		SetBetScene* scene = new SetBetScene(this);
 		scene->select_dealer(dynamic_cast<const CharacterSelected*>(evt)->dealer);
 		scene_manager->swapScene(scene);
 		}));
-
-	//Initialize scene manager
-	scene_manager = new SceneManager();
+	event_manager->subscribe<CharacterSelectTimeout>(new GenericListener(nullptr, [&](Scene* _scene, const Event* evt) {
+		scene_manager->swapScene(new TitleScene(this));
+		}));
+	event_manager->subscribe<SetBetTimeout>(new GenericListener(nullptr, [&](Scene* _scene, const Event* evt) {
+		scene_manager->swapScene(new TitleScene(this));
+		}));
+	event_manager->subscribe<BetSet>(new GenericListener(nullptr, [&](Scene* _scene, const Event* evt) {
+		PlayScene* scene = new PlayScene(this);
+		scene->select_dealer(dynamic_cast<const BetSet*>(evt)->dealer);
+		scene->set_bet(dynamic_cast<const BetSet*>(evt)->bet);
+		scene_manager->swapScene(scene);
+		}));
 }
 
 void Game::close()

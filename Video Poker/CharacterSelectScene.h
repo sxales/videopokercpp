@@ -24,6 +24,8 @@ struct CharacterSelected : public Event {
 	CharacterSelected(int d) : dealer(d) {}
 };
 
+struct CharacterSelectTimeout : public Event {};
+
 class CharacterSelectScene : public Scene {
 private:
 	int SCREEN_WIDTH = 0;
@@ -34,16 +36,16 @@ private:
 	int fontsize = 0;
 	Button buttons[12];
 	Button btnrandom;
+	int TIMEOUT = 0;
+	int count = 0;
 public:
 	CharacterSelectScene(Game* m_game) : Scene(m_game) {
-		if (!m_game) std::cerr << "Game pointer null?\n";
-		if (!m_game->event_manager) std:cerr << "Event Manager pointer null?\n";
-
 		SCREEN_WIDTH = m_game->config_manager->getInt("WindowWidth");
 		SCREEN_HEIGHT = m_game->config_manager->getInt("WindowHeight");
 		CHARACTER_WIDTH = m_game->config_manager->getInt("CharacterWidth");
 		CHARACTER_HEIGHT = m_game->config_manager->getInt("CharacterHeight");
 		MAXDEALER = m_game->config_manager->getInt("MaxDealer");
+		TIMEOUT = m_game->config_manager->getInt("CharacterSelectTimeout");
 
 		if (MAXDEALER > 12) std::cerr << "Too many dealers!\n";
 
@@ -108,6 +110,7 @@ public:
 		SDL_RenderPresent(m_game->m_window->mRenderer);
 	}
 	void update() {
+		if (++count > TIMEOUT) m_game->event_manager->trigger(CharacterSelectTimeout());
 	}
 	void handleEvents(SDL_Event& e) {
 		if (e.type == SDL_MOUSEMOTION) {
@@ -126,7 +129,7 @@ public:
 		else if (e.type == SDL_KEYUP) {
 			switch (e.key.keysym.sym) {
 			case SDLK_ESCAPE:
-				m_game->event_manager->trigger(PlayEnds(0,0,0));
+				m_game->event_manager->trigger(CharacterSelectTimeout());
 				return;
 				break;
 			}

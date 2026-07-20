@@ -161,6 +161,7 @@
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneManager.h" />
+    <ClInclude Include="SetBetScene.h" />
     <ClInclude Include="SplashScene.h" />
     <ClInclude Include="TitleScene.h" />
   </ItemGroup>

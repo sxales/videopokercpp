@@ -50,10 +50,6 @@ PlayScene::PlayScene(Game* m_game) : Scene(m_game) {
 	btndraw = Button("draw", SCREEN_WIDTH * SCREENRATIO + (SCREEN_WIDTH * (1 - SCREENRATIO) - buttonwidth * 2) / 2, SCREEN_HEIGHT - buttonheight - FONTSIZE / 2, buttonwidth * 2, buttonheight);
 	btndeal = Button("deal", SCREEN_WIDTH * SCREENRATIO + (SCREEN_WIDTH * (1 - SCREENRATIO) - buttonwidth * 2) / 2, SCREEN_HEIGHT - buttonheight - FONTSIZE / 2, buttonwidth * 2, buttonheight);
 
-	btnincrease = Button("+", SCREEN_WIDTH * SCREENRATIO + (SCREEN_WIDTH * (1 - SCREENRATIO) - FONTSIZE * 3) / 2, (SCREEN_HEIGHT / 2 - FONTSIZE * 3.5), FONTSIZE * 3, FONTSIZE * 3);
-	btndecrease = Button("-", SCREEN_WIDTH * SCREENRATIO + (SCREEN_WIDTH * (1 - SCREENRATIO) - FONTSIZE * 3) / 2, (SCREEN_HEIGHT / 2 + FONTSIZE * 0.5), FONTSIZE * 3, FONTSIZE * 3);
-	btnconfirm = Button("done", SCREEN_WIDTH * SCREENRATIO + (SCREEN_WIDTH * (1 - SCREENRATIO) - buttonwidth * 2) / 2, SCREEN_HEIGHT - buttonheight - FONTSIZE / 2, buttonwidth * 2, buttonheight);
-
 	int popupwidth = (16) * FONTSIZE;
 	int popupheight = FONTSIZE * 3;
 	btnquityes = Button("yes", ((SCREEN_WIDTH - popupwidth) / 2) + (((popupwidth / 2) - buttonwidth) / 2), (SCREEN_HEIGHT - popupheight) / 2 + (FONTSIZE * 1.2), buttonwidth, buttonheight);
@@ -67,9 +63,9 @@ PlayScene::PlayScene(Game* m_game) : Scene(m_game) {
 
 	shoe.init(1);
 
-	_dealer = rand() % MAXDEALER;
+	//_dealer = rand() % MAXDEALER;
 
-	_state = setbet;
+	_state = deal;
 }
 
 bool PlayScene::load() {
@@ -136,11 +132,6 @@ void PlayScene::render(float interpolation) {
 	}
 	else if (_state == deal) bhelper.drawButton(m_game->m_window->mRenderer, m_game->resource_manager->getAsset("tileset"), m_game->resource_manager->getAsset("font"), btndeal);
 	else if (_state == keep_or_discard) bhelper.drawButton(m_game->m_window->mRenderer, m_game->resource_manager->getAsset("tileset"), m_game->resource_manager->getAsset("font"), btndraw);
-	else if (_state == setbet) {
-		bhelper.drawButton(m_game->m_window->mRenderer, m_game->resource_manager->getAsset("tileset"), m_game->resource_manager->getAsset("font"), btnconfirm);
-		bhelper.drawButton(m_game->m_window->mRenderer, m_game->resource_manager->getAsset("tileset"), m_game->resource_manager->getAsset("font"), btnincrease);
-		bhelper.drawButton(m_game->m_window->mRenderer, m_game->resource_manager->getAsset("tileset"), m_game->resource_manager->getAsset("font"), btndecrease);
-	}
 
 	//draw scoreboard
 	if (_state >= setbet && _state < gameover) {
@@ -240,17 +231,6 @@ void PlayScene::render(float interpolation) {
 		std::string timer = "" + to_string((int)round((_nexttick - _tick) / 3 + 1));
 
 		font.renderText(m_game->m_window->mRenderer, timer, (SCREEN_WIDTH - FONTSIZE * timer.length()) / 2, SCREEN_HEIGHT - (vpos / 2), m_game->resource_manager->getAsset("font"), yellow, FONTSIZE);
-	}
-
-	//draw dealer dialog
-	if (_state == setbet) {
-		int fs = (SCREEN_WIDTH * SCREENRATIO) / 9;
-		int dealerwidth = SCREEN_WIDTH * SCREENRATIO * 0.85;
-		int vpos = (SCREEN_HEIGHT - (dealerwidth + fs * 11.75)) / 2 + FONTSIZE / 2;
-		int hpos = (SCREEN_WIDTH * SCREENRATIO);
-
-		box.drawBox(m_game->m_window->mRenderer, m_game->resource_manager->getAsset("tileset"), 20, hpos - FONTSIZE / 2, vpos - FONTSIZE / 2, FONTSIZE * 12, FONTSIZE * 2);
-		font.renderText(m_game->m_window->mRenderer, "Select bet!", hpos, vpos, m_game->resource_manager->getAsset("font"), logo, FONTSIZE);
 	}
 
 	//draw messages
@@ -387,15 +367,9 @@ void PlayScene::handleEvents(SDL_Event& e) {
 
 		btndraw.check(e.motion.x, e.motion.y);
 		btndeal.check(e.motion.x, e.motion.y);
-		btnconfirm.check(e.motion.x, e.motion.y);
-		btnincrease.check(e.motion.x, e.motion.y);
-		btndecrease.check(e.motion.x, e.motion.y);
 
 		btndraw.enabled = !show_quit_confirmation;
 		btndeal.enabled = !show_quit_confirmation;
-		btnconfirm.enabled = !show_quit_confirmation;
-		btnincrease.enabled = !show_quit_confirmation;
-		btndecrease.enabled = !show_quit_confirmation;
 	}
 	else if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT) {
 		if (demo) {
@@ -409,18 +383,6 @@ void PlayScene::handleEvents(SDL_Event& e) {
 			}
 			else if (btnquitno.check(e.motion.x, e.motion.y)) {
 				show_quit_confirmation = false;
-			}
-		}
-		else if (_state == setbet) {
-			if (btnconfirm.check(e.motion.x, e.motion.y)) _state = deal;
-			else if (btnincrease.check(e.motion.x, e.motion.y)) {
-				if (bet < defaultbet * 5) bet += defaultbet;
-			}
-			else if (btndecrease.check(e.motion.x, e.motion.y)) {
-				if (bet > defaultbet) bet -= defaultbet;
-			}
-			else if (btndealer.check(e.motion.x, e.motion.y)) {
-				_dealer = (_dealer + 1) % MAXDEALER;
 			}
 		}
 		else if (_state == deal && btndeal.check(e.motion.x, e.motion.y)) {
@@ -477,9 +439,6 @@ void PlayScene::handleEvents(SDL_Event& e) {
 			show_quit_confirmation = true;
 			btndraw.enabled = false;
 			btndeal.enabled = false;
-			btnconfirm.enabled = false;
-			btnincrease.enabled = false;
-			btndecrease.enabled = false;
 			break;
 		}
 		if (debug) {
@@ -517,6 +476,10 @@ void PlayScene::start_demo() {
 	_level = 0;
 	_nexttick = _tick + 5;
 	_state = deal;
+}
+
+void PlayScene::set_bet(int b) {
+	bet = b;
 }
 
 void PlayScene::select_dealer(int d) {
