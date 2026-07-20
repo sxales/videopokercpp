@@ -95,8 +95,8 @@ bool PlayScene::unload() {
 
 void PlayScene::render(float interpolation) {
 	//Clear screen
-	SDL_SetRenderDrawColor(LWindow::getInstance()->mRenderer, 27, 94, 32, 0xFF);
-	SDL_RenderClear(LWindow::getInstance()->mRenderer);
+	SDL_SetRenderDrawColor(m_game->m_window->mRenderer, 27, 94, 32, 0xFF);
+	SDL_RenderClear(m_game->m_window->mRenderer);
 
 	BitmapFont font;
 	BoxHelper box;
@@ -168,8 +168,8 @@ void PlayScene::render(float interpolation) {
 		hpos = (SCREEN_WIDTH * SCREENRATIO - dealerwidth) / 2;
 		//drawBox(20, hpos, vpos, dealerwidth, dealerwidth);
 		SDL_Rect outline = { hpos, vpos, dealerwidth, dealerwidth };
-		SDL_SetRenderDrawColor(LWindow::getInstance()->mRenderer, 224, 224, 0, 255);
-		SDL_RenderFillRect(LWindow::getInstance()->mRenderer, &outline);
+		SDL_SetRenderDrawColor(m_game->m_window->mRenderer, 224, 224, 0, 255);
+		SDL_RenderFillRect(m_game->m_window->mRenderer, &outline);
 		SDL_Rect dealerTexture = { DEALERSIZE * (_dealer), DEALERSIZE * (_level), DEALERSIZE, DEALERSIZE };
 		SDL_Rect dealerResize = { hpos + 5, vpos + 5, dealerwidth - 10, dealerwidth - 10 };
 
@@ -470,6 +470,10 @@ void PlayScene::handleEvents(SDL_Event& e) {
 			debug = !debug;
 			break;
 		case SDLK_ESCAPE:
+			if (_state == setbet) {
+				m_game->event_manager->trigger(PlayEnds(_dealer, _level, _totalxp));
+				return;
+			}
 			show_quit_confirmation = true;
 			btndraw.enabled = false;
 			btndeal.enabled = false;
@@ -513,6 +517,10 @@ void PlayScene::start_demo() {
 	_level = 0;
 	_nexttick = _tick + 5;
 	_state = deal;
+}
+
+void PlayScene::select_dealer(int d) {
+	_dealer = d % MAXDEALER;
 }
 
 std::string PlayScene::translate_outcome(Outcome outcome) {

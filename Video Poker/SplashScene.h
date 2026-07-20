@@ -35,8 +35,8 @@ public:
 	}
 	void render(float interpolation) {
 		//Clear screen
-		SDL_SetRenderDrawColor(LWindow::getInstance()->mRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
-		SDL_RenderClear(LWindow::getInstance()->mRenderer);
+		SDL_SetRenderDrawColor(m_game->m_window->mRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+		SDL_RenderClear(m_game->m_window->mRenderer);
 
 		SDL_Rect dealerTexture = { 0, 0, 279, 115 };
 		SDL_Rect dealerResize = { (SCREEN_WIDTH - 279) / 2, (SCREEN_HEIGHT - 115) / 2, 279, 115 };
@@ -46,7 +46,7 @@ public:
 		SDL_SetTextureAlphaMod(m_game->resource_manager->getAsset("logo"), 255 - count * (255 / TIMEOUT));
 
 		//Update screen
-		SDL_RenderPresent(LWindow::getInstance()->mRenderer);
+		SDL_RenderPresent(m_game->m_window->mRenderer);
 	}
 	void update() {
 		if (++count > TIMEOUT) m_game->event_manager->trigger(SpashTimeout());

@@ -81,6 +81,9 @@
     <ClInclude Include="ButtonHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CharacterSelectScene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PlayScene.cpp">

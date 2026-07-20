@@ -83,6 +83,7 @@ public:
 	void update();
 	void handleEvents(SDL_Event& e);
 	void start_demo();
+	void select_dealer(int d);
 };
 
 #endif

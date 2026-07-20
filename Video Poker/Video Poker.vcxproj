@@ -145,6 +145,7 @@
     <ClInclude Include="Button.h" />
     <ClInclude Include="ButtonHelper.h" />
     <ClInclude Include="Card.h" />
+    <ClInclude Include="CharacterSelectScene.h" />
     <ClInclude Include="ConfigManager.h" />
     <ClInclude Include="Event.h" />
     <ClInclude Include="EventManager.h" />

@@ -12,6 +12,7 @@
 #include "SplashScene.h"
 #include "TitleScene.h"
 #include "PlayScene.h"
+#include "CharacterSelectScene.h"
 
 Game::Game(const std::string config) {
 	config_manager = new ConfigManager(config);
@@ -25,10 +26,10 @@ Game::Game(const std::string config) {
 	event_manager->subscribe<SpashTimeout>(new GenericListener(nullptr, [&](Scene* _scene, const Event* evt) {
 		scene_manager->popScene();
 		scene_manager->pushScene(new TitleScene(this));
-	}));
+		}));
 	event_manager->subscribe<TitleInteract>(new GenericListener(nullptr, [&](Scene* _scene, const Event* evt) {
 		scene_manager->popScene();
-		scene_manager->pushScene(new PlayScene(this));
+		scene_manager->pushScene(new CharacterSelectScene(this));
 		}));
 	event_manager->subscribe<TitleTimeout>(new GenericListener(nullptr, [&](Scene* _scene, const Event* evt) {
 		scene_manager->popScene();
@@ -39,6 +40,12 @@ Game::Game(const std::string config) {
 	event_manager->subscribe<PlayEnds>(new GenericListener(nullptr, [&](Scene* _scene, const Event* evt) {
 		scene_manager->popScene();
 		scene_manager->pushScene(new TitleScene(this));
+		}));
+	event_manager->subscribe<CharacterSelected>(new GenericListener(nullptr, [&](Scene* _scene, const Event* evt) {
+		scene_manager->popScene();
+		PlayScene* scene = new PlayScene(this);
+		scene->select_dealer(dynamic_cast<const CharacterSelected*>(evt)->dealer);
+		scene_manager->pushScene(scene);
 		}));
 
 	//Initialize scene manager
