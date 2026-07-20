@@ -10,6 +10,7 @@
 
 #include "ResourceManager.h"
 #include "ConfigManager.h"
+#include "EventManager.h"
 #include "Button.h"
 
 #include "BitmapFont.h"
@@ -31,15 +32,20 @@ private:
 	int CHARACTER_HEIGHT = 0;
 	int MAXDEALER = 0;
 	int fontsize = 0;
-	std::vector<Button> buttons;
+	Button buttons[12];
 	Button btnrandom;
 public:
 	CharacterSelectScene(Game* m_game) : Scene(m_game) {
+		if (!m_game) std::cerr << "Game pointer null?\n";
+		if (!m_game->event_manager) std:cerr << "Event Manager pointer null?\n";
+
 		SCREEN_WIDTH = m_game->config_manager->getInt("WindowWidth");
 		SCREEN_HEIGHT = m_game->config_manager->getInt("WindowHeight");
 		CHARACTER_WIDTH = m_game->config_manager->getInt("CharacterWidth");
 		CHARACTER_HEIGHT = m_game->config_manager->getInt("CharacterHeight");
 		MAXDEALER = m_game->config_manager->getInt("MaxDealer");
+
+		if (MAXDEALER > 12) std::cerr << "Too many dealers!\n";
 
 		int buttonheight = SCREEN_HEIGHT / 3;
 		int buttonwidth = buttonheight * ((float)CHARACTER_WIDTH / (float)CHARACTER_HEIGHT);
@@ -51,23 +57,23 @@ public:
 			int hpos = 0;
 			if (i < col) hpos = (SCREEN_WIDTH - (buttonwidth * col)) / 2;
 			else hpos = (SCREEN_WIDTH - (buttonwidth * (MAXDEALER % col))) / 2;
-			buttons.push_back(Button("", hpos + buttonwidth * (i % col), ((SCREEN_HEIGHT - (buttonheight * 2)) / 2) + buttonheight * (i / col), buttonwidth, buttonheight));
+			buttons[i] = Button("", hpos + buttonwidth * (i % col), ((SCREEN_HEIGHT - (buttonheight * 2)) / 2) + buttonheight * (i / col), buttonwidth, buttonheight);
 		}
 
 		fontsize = buttonheight / 4;
 		btnrandom = Button("random", (SCREEN_WIDTH - fontsize * 6) / 2, (buttonheight * 2.5) + (fontsize / 2), fontsize * 6, fontsize);
 	}
 	bool load() {
-		m_game->resource_manager->addAsset("characters", m_game->config_manager->getString("CharacterTexture"));
+		/*m_game->resource_manager->addAsset("characters", m_game->config_manager->getString("CharacterTexture"));
 		m_game->resource_manager->addAsset("font", "Data/Textures/font.png");
-		m_game->resource_manager->addAsset("tileset", "Data/Textures/tiles.png");
+		m_game->resource_manager->addAsset("tileset", "Data/Textures/tiles.png");*/
 
 		return true;
 	}
 	bool unload() {
-		m_game->resource_manager->removeAsset("characters");
+		/*m_game->resource_manager->removeAsset("characters");
 		m_game->resource_manager->removeAsset("font");
-		m_game->resource_manager->removeAsset("tileset");
+		m_game->resource_manager->removeAsset("tileset");*/
 
 		return true;
 	}
@@ -79,7 +85,7 @@ public:
 		SDL_Texture* characters = m_game->resource_manager->getAsset("characters");
 
 		SDL_SetRenderDrawColor(m_game->m_window->mRenderer, 224, 224, 0, 255);
-		for (int i = 0; i < buttons.size(); i++) {
+		for (int i = 0; i < MAXDEALER; i++) {
 			Button& b = buttons[i];
 			SDL_Rect texture = { CHARACTER_WIDTH * i, (b.over) ? CHARACTER_HEIGHT : 0, CHARACTER_WIDTH, CHARACTER_HEIGHT};
 			SDL_Rect resize = { b.x, b.y, b.width, b.height };
@@ -105,13 +111,12 @@ public:
 	}
 	void handleEvents(SDL_Event& e) {
 		if (e.type == SDL_MOUSEMOTION) {
-			for (auto& b : buttons) b.check(e.motion.x, e.motion.y);
+			for (int i = 0; i < MAXDEALER; i++) buttons[i].check(e.motion.x, e.motion.y);
 			btnrandom.check(e.motion.x, e.motion.y);
 		}
 		else if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT) {
-			for (int i = 0; i < buttons.size(); i++) {
-				Button& b = buttons[i];
-				if (b.check(e.motion.x, e.motion.y)) m_game->event_manager->trigger(CharacterSelected(i));
+			for (int i = 0; i < MAXDEALER; i++) {
+				if (buttons[i].check(e.motion.x, e.motion.y)) m_game->event_manager->trigger(CharacterSelected(i % MAXDEALER));
 			}
 			if (btnrandom.check(e.motion.x, e.motion.y)) {
 				srand(time(NULL));

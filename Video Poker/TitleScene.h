@@ -35,18 +35,18 @@ public:
 		FONTSIZE = (SCREEN_WIDTH) / (25);
 	}
 	bool load() {
-		m_game->resource_manager->addAsset("font", "Data/Textures/font.png");
+		/*m_game->resource_manager->addAsset("font", "Data/Textures/font.png");
 		m_game->resource_manager->addAsset("cards", m_game->config_manager->getString("CardTexture"));
 		m_game->resource_manager->addAsset("royalflush", "Data/Textures/ROYALFLUSH.png");
-		m_game->resource_manager->addAsset("tileset", "Data/Textures/tiles.png");
+		m_game->resource_manager->addAsset("tileset", "Data/Textures/tiles.png");*/
 
 		return true;
 	}
 	bool unload() {
-		m_game->resource_manager->removeAsset("font");
+		/*m_game->resource_manager->removeAsset("font");
 		m_game->resource_manager->removeAsset("cards");
 		m_game->resource_manager->removeAsset("royalflush");
-		m_game->resource_manager->removeAsset("tileset");
+		m_game->resource_manager->removeAsset("tileset");*/
 
 		return true;
 	}

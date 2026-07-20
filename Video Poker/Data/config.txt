@@ -18,3 +18,6 @@ DemoTimeout = 150
 CharacterTexture = Data/Textures/characters_small_pixelated.png
 CharacterWidth = 256
 CharacterHeight = 384
+FontTexture = Data/Textures/font.png
+TilesetTexture = Data/Textures/tiles.png
+LogoTexture = Data/Textures/ROYALFLUSH.png

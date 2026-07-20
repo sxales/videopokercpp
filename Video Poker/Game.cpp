@@ -21,31 +21,34 @@ Game::Game(const std::string config) {
 
 	resource_manager = new ResourceManager(m_window->mRenderer);
 
+	resource_manager->addAsset("characters", config_manager->getString("CharacterTexture"));
+	resource_manager->addAsset("cards", config_manager->getString("CardTexture"));
+	resource_manager->addAsset("dealer", config_manager->getString("DealerTexture"));
+	resource_manager->addAsset("heart", config_manager->getString("HeartTexture"));
+	resource_manager->addAsset("font", "Data/Textures/font.png");
+	resource_manager->addAsset("tileset", "Data/Textures/tiles.png");
+	resource_manager->addAsset("royalflush", "Data/Textures/ROYALFLUSH.png");
+
 	//scene transition events
 	event_manager = new EventManager();
 	event_manager->subscribe<SpashTimeout>(new GenericListener(nullptr, [&](Scene* _scene, const Event* evt) {
-		scene_manager->popScene();
-		scene_manager->pushScene(new TitleScene(this));
+		scene_manager->swapScene(new TitleScene(this));
 		}));
 	event_manager->subscribe<TitleInteract>(new GenericListener(nullptr, [&](Scene* _scene, const Event* evt) {
-		scene_manager->popScene();
-		scene_manager->pushScene(new CharacterSelectScene(this));
+		scene_manager->swapScene(new CharacterSelectScene(this));
 		}));
 	event_manager->subscribe<TitleTimeout>(new GenericListener(nullptr, [&](Scene* _scene, const Event* evt) {
-		scene_manager->popScene();
 		PlayScene* scene = new PlayScene(this);
 		scene->start_demo();
-		scene_manager->pushScene(scene);
+		scene_manager->swapScene(scene);
 		}));
 	event_manager->subscribe<PlayEnds>(new GenericListener(nullptr, [&](Scene* _scene, const Event* evt) {
-		scene_manager->popScene();
-		scene_manager->pushScene(new TitleScene(this));
+		scene_manager->swapScene(new TitleScene(this));
 		}));
 	event_manager->subscribe<CharacterSelected>(new GenericListener(nullptr, [&](Scene* _scene, const Event* evt) {
-		scene_manager->popScene();
 		PlayScene* scene = new PlayScene(this);
 		scene->select_dealer(dynamic_cast<const CharacterSelected*>(evt)->dealer);
-		scene_manager->pushScene(scene);
+		scene_manager->swapScene(scene);
 		}));
 
 	//Initialize scene manager
@@ -105,7 +108,7 @@ void Game::run()
 	SDL_Event e;
 
 	//TODO load dynamic scene from config
-	scene_manager->pushScene(new SplashScene(this));
+	scene_manager->swapScene(new SplashScene(this));
 
 	uint32_t time_step_ms = std::floor(1000.0 / config_manager->getInt("UpdatesPerSecond"));
 	uint32_t next_game_step = SDL_GetTicks(); // initial value

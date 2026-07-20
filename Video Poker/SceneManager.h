@@ -14,52 +14,33 @@
 
 class SceneManager {
 private:
-	std::list<std::unique_ptr<Scene>> m_scenes;
+	Scene* m_scene;
 public:
 	~SceneManager() {
-		while (!m_scenes.empty()) popScene();
+		m_scene->unload();
+		delete m_scene;
 	}
 	void update() {
-		if (m_scenes.empty()) return;
-		m_scenes.back()->update();
+		if (!m_scene) return;
+		m_scene->update();
 	};
 	void render(float interpolation) {
-		if (m_scenes.empty()) return;
-		m_scenes.back()->render(interpolation);
+		if (!m_scene) return;
+		m_scene->render(interpolation);
 	};
 	void handleEvents(SDL_Event& e) {
-		if (m_scenes.empty()) return;
-		m_scenes.back()->handleEvents(e);
+		if (!m_scene) return;
+		m_scene->handleEvents(e);
 	};
 
-	void pushScene(std::unique_ptr<Scene> scene) {
-		if (!scene) {
-			std::cerr << "Invalid scene!";
-			return;
+	void swapScene(Scene* newScene) {
+		if (m_scene) {
+			m_scene->unload();
+			delete m_scene;
 		}
-		if (!scene->load()) {
-			std::cerr << "Unable to load scene!";
-			return;
-		}
-
-		m_scenes.push_back(std::move(scene));
-	};
-
-	void pushScene(Scene* scene) {
-		pushScene(std::unique_ptr<Scene>(scene));
+		newScene->load();
+		m_scene = newScene;
 	}
-
-	void popScene() {
-		if (m_scenes.empty()) return;
-
-		std::unique_ptr<Scene>& back = m_scenes.back();
-
-		if (!back) return;
-
-		if (!back->unload()) std::cerr << "Unable to unload scene!";
-
-		m_scenes.pop_back();
-	};
 };
 
 #endif

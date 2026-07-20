@@ -73,22 +73,22 @@ PlayScene::PlayScene(Game* m_game) : Scene(m_game) {
 }
 
 bool PlayScene::load() {
-	m_game->resource_manager->addAsset("font", "Data/Textures/font.png");
+	/*m_game->resource_manager->addAsset("font", "Data/Textures/font.png");
 	m_game->resource_manager->addAsset("cards", m_game->config_manager->getString("CardTexture"));
 	m_game->resource_manager->addAsset("dealer", m_game->config_manager->getString("DealerTexture"));
 	m_game->resource_manager->addAsset("heart", m_game->config_manager->getString("HeartTexture"));
 	m_game->resource_manager->addAsset("tileset", "Data/Textures/tiles.png");
-	m_game->resource_manager->addAsset("royalflush", "Data/Textures/ROYALFLUSH.png");
+	m_game->resource_manager->addAsset("royalflush", "Data/Textures/ROYALFLUSH.png");*/
 
 	return true;
 }
 
 bool PlayScene::unload() {
-	m_game->resource_manager->removeAsset("font");
+	/*m_game->resource_manager->removeAsset("font");
 	m_game->resource_manager->removeAsset("cards");
 	m_game->resource_manager->removeAsset("dealer");
 	m_game->resource_manager->removeAsset("tileset");
-	m_game->resource_manager->removeAsset("royalflush");
+	m_game->resource_manager->removeAsset("royalflush");*/
 
 	return true;
 }
@@ -512,7 +512,7 @@ void PlayScene::start_demo() {
 	displayedbank = bank;
 	_dealer = rand() % MAXDEALER;
 	_currentxp = 0;
-	_nextxp = 0;
+	_nextxp = 10;
 	_totalxp = 0;
 	_level = 0;
 	_nexttick = _tick + 5;
