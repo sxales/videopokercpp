@@ -432,10 +432,6 @@ void PlayScene::handleEvents(SDL_Event& e) {
 			debug = !debug;
 			break;
 		case SDLK_ESCAPE:
-			if (_state == setbet) {
-				m_game->event_manager->trigger(PlayEnds(_dealer, _level, _totalxp));
-				return;
-			}
 			show_quit_confirmation = true;
 			btndraw.enabled = false;
 			btndeal.enabled = false;
