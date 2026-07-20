@@ -11,3 +11,7 @@ MaxDealer = 8
 MaxLevel = 7
 DemoDelay = 100
 ScoreDelay = 10
+HeartTexture = Data/Textures/heart_small.png
+HeartSize = 64
+SplashTimeout = 20
+DemoTimeout = 150

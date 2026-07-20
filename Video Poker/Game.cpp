@@ -10,6 +10,7 @@
 #include "GenericListener.h"
 
 #include "SplashScene.h"
+#include "TitleScene.h"
 #include "PlayScene.h"
 
 Game::Game(const std::string config) {
@@ -19,10 +20,26 @@ Game::Game(const std::string config) {
 
 	resource_manager = new ResourceManager(m_window->mRenderer);
 
+	//scene transition events
 	event_manager = new EventManager();
-	event_manager->subscribe<SplashComplete>(new GenericListener(nullptr, [&](Scene* _scene, const Event* evt) {
-		scene_manager->pushScene(new PlayScene(this));
+	event_manager->subscribe<SpashTimeout>(new GenericListener(nullptr, [&](Scene* _scene, const Event* evt) {
+		scene_manager->popScene();
+		scene_manager->pushScene(new TitleScene(this));
 	}));
+	event_manager->subscribe<TitleInteract>(new GenericListener(nullptr, [&](Scene* _scene, const Event* evt) {
+		scene_manager->popScene();
+		scene_manager->pushScene(new PlayScene(this));
+		}));
+	event_manager->subscribe<TitleTimeout>(new GenericListener(nullptr, [&](Scene* _scene, const Event* evt) {
+		scene_manager->popScene();
+		PlayScene* scene = new PlayScene(this);
+		scene->start_demo();
+		scene_manager->pushScene(scene);
+		}));
+	event_manager->subscribe<PlayEnds>(new GenericListener(nullptr, [&](Scene* _scene, const Event* evt) {
+		scene_manager->popScene();
+		scene_manager->pushScene(new TitleScene(this));
+		}));
 
 	//Initialize scene manager
 	scene_manager = new SceneManager();

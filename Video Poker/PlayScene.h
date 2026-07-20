@@ -12,7 +12,12 @@
 #include "Deck.h"
 #include "Button.h"
 
+#include "Event.h"
 
+struct PlayEnds : public Event {
+	int dealer, level, xp;
+	PlayEnds(int d, int l, int x) : dealer(d), level(l), xp(x) {}
+};
 
 enum State { title, setbet, deal, flip, keep_or_discard, draw, score, reset, gameover };
 enum Outcome { royal_flush, straight_flush, four_of_a_kind, full_house, flush, straight, three_of_a_kind, two_pair, jacks_or_better, nothing, low_pair, high_card, four_card_flush, four_card_straight, four_card_straight_flush, three_card_flush, three_card_straight, three_card_straight_flush };
@@ -27,7 +32,9 @@ private:
 	int MAXLEVEL = 0;
 	float SCREENRATIO = 0.2;
 	int DEMO_DELAY = 0;
+	int DEMO_TIMEOUT = 0;
 	int SCORE_DELAY = 0;
+	int HEARTSIZE = 0;
 
 	const int PAYOUT[10] = { 250, 50, 25, 9, 6, 4, 3, 2, 1, 0 };
 	const std::string LABEL[10] = { "RF", "SF", "4K", "FH", "FL", "ST", "3K", "2P", "JB", "ER"};
@@ -38,6 +45,7 @@ private:
 	int _cardwidth = 0, _cardheight = 0;
 
 	int _level = 0, _currentxp = 0, _nextxp = 10;
+	int _totalxp = 0;
 
 	bool hold[5] = {false, false, false, false, false};
 
@@ -74,8 +82,7 @@ public:
 	void render(float interpolation);
 	void update();
 	void handleEvents(SDL_Event& e);
-	void drawBox(int color, int x, int y, int width, int height);
-	void drawButton(const Button button);
+	void start_demo();
 };
 
 #endif

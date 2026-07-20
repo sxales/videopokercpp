@@ -141,7 +141,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BitmapFont.h" />
+    <ClInclude Include="BoxHelper.h" />
     <ClInclude Include="Button.h" />
+    <ClInclude Include="ButtonHelper.h" />
     <ClInclude Include="Card.h" />
     <ClInclude Include="ConfigManager.h" />
     <ClInclude Include="Event.h" />
@@ -159,6 +161,7 @@
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="SplashScene.h" />
+    <ClInclude Include="TitleScene.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Game.cpp" />

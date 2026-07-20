@@ -4,9 +4,11 @@
 #include "PlayScene.h"
 #include "ResourceManager.h"
 #include "ConfigManager.h"
-#include "BitmapFont.h"
+#include "EventManager.h"
 
-#include "LWindow.h"
+#include "BitmapFont.h"
+#include "BoxHelper.h"
+#include "ButtonHelper.h"
 
 #include "Deck.h"
 
@@ -20,8 +22,10 @@ PlayScene::PlayScene(Game* m_game) : Scene(m_game) {
 	DEALERSIZE = m_game->config_manager->getInt("DealerSize");
 	MAXDEALER = m_game->config_manager->getInt("MaxDealer");
 	MAXLEVEL = m_game->config_manager->getInt("MaxLevel");
+	HEARTSIZE = m_game->config_manager->getInt("HeartSize");
 	SCREENRATIO = 0.2;
 	DEMO_DELAY = m_game->config_manager->getInt("DemoDelay");
+	DEMO_TIMEOUT = m_game->config_manager->getInt("DemoTimeout");
 	SCORE_DELAY = m_game->config_manager->getInt("ScoreDelay");
 
 	FONTSIZE = (SCREEN_WIDTH * (1 - SCREENRATIO)) / (25);
@@ -63,13 +67,16 @@ PlayScene::PlayScene(Game* m_game) : Scene(m_game) {
 
 	shoe.init(1);
 
-	_state = title;
+	_dealer = rand() % MAXDEALER;
+
+	_state = setbet;
 }
 
 bool PlayScene::load() {
 	m_game->resource_manager->addAsset("font", "Data/Textures/font.png");
 	m_game->resource_manager->addAsset("cards", m_game->config_manager->getString("CardTexture"));
 	m_game->resource_manager->addAsset("dealer", m_game->config_manager->getString("DealerTexture"));
+	m_game->resource_manager->addAsset("heart", m_game->config_manager->getString("HeartTexture"));
 	m_game->resource_manager->addAsset("tileset", "Data/Textures/tiles.png");
 	m_game->resource_manager->addAsset("royalflush", "Data/Textures/ROYALFLUSH.png");
 
@@ -92,45 +99,8 @@ void PlayScene::render(float interpolation) {
 	SDL_RenderClear(LWindow::getInstance()->mRenderer);
 
 	BitmapFont font;
-
-	//draw title screen
-	if (_state == title) {
-		int col = 15;
-		int row = 6;
-
-		int adjustedwidth = SCREEN_WIDTH / col;
-		int adjustedheight = SCREEN_HEIGHT / row;
-
-		for (int i = 0; i < row * col; i++) {
-			SDL_Rect cardTexture;
-			if (_tick % 2 == 0) cardTexture = { 13 * CARDWIDTH, CARDHEIGHT * (i % 2), CARDWIDTH, CARDHEIGHT };
-			else cardTexture = { 13 * CARDWIDTH, CARDHEIGHT * ((i + 1) % 2), CARDWIDTH, CARDHEIGHT };
-
-			SDL_Rect cardResize = { 3 + adjustedwidth * (i % col), adjustedheight * (floor(i / col)), adjustedwidth, adjustedheight };
-			SDL_RenderCopyEx(m_game->m_window->mRenderer, m_game->resource_manager->getAsset("cards"), &cardTexture, &cardResize, NULL, NULL, SDL_FLIP_NONE);
-		}
-
-		int w = SCREEN_HEIGHT / 2 - FONTSIZE * 2;
-		int vpos = (SCREEN_HEIGHT - w) / 2;
-		int hpos = (SCREEN_WIDTH - w) / 2;
-		//draw dealer
-		//drawBox(ctx, 20, hpos, vpos, w, w);
-		int c = row * col * 2 / 5;
-		SDL_Rect dealerTexture = { DEALERSIZE * 0, 0, DEALERSIZE, DEALERSIZE };
-		SDL_Rect dealerResize = { hpos + 5, vpos + 5, w - 12, w - 12 };
-
-		SDL_RenderCopyEx(m_game->m_window->mRenderer, m_game->resource_manager->getAsset("royalflush"), &dealerTexture, &dealerResize, NULL, NULL, SDL_FLIP_NONE);
-
-		int height = FONTSIZE * 2;
-		int width = FONTSIZE * 13;
-		vpos = (vpos - FONTSIZE * 2) / 2;
-		hpos = (SCREEN_WIDTH - width) / 2;
-
-		drawBox(20, hpos, vpos - FONTSIZE / 2, width, height);
-		font.renderText(m_game->m_window->mRenderer, "Video Poker!", (SCREEN_WIDTH - FONTSIZE * 12) / 2, vpos, m_game->resource_manager->getAsset("font"), super, FONTSIZE);
-
-		if (_tick % 2 == 0) font.renderText(m_game->m_window->mRenderer, "Click to start", (SCREEN_WIDTH - FONTSIZE * 14) / 2, w + (SCREEN_HEIGHT - w) / 2 + vpos, m_game->resource_manager->getAsset("font"), blue, FONTSIZE);
-	}
+	BoxHelper box;
+	ButtonHelper bhelper;
 
 	//draw cards
 	if (_state > deal && _state < gameover) {
@@ -164,12 +134,12 @@ void PlayScene::render(float interpolation) {
 		int buttonwidth = FONTSIZE * 8;
 		if (_tick % 2 == 0) font.renderText(m_game->m_window->mRenderer, "DEMO", (SCREEN_WIDTH * SCREENRATIO) + (SCREEN_WIDTH * (1 - SCREENRATIO) - buttonwidth) / 2, SCREEN_HEIGHT - buttonheight - FONTSIZE / 2, m_game->resource_manager->getAsset("font"), super, FONTSIZE * 2);
 	}
-	else if (_state == deal) drawButton(btndeal);
-	else if (_state == keep_or_discard) drawButton(btndraw);
+	else if (_state == deal) bhelper.drawButton(m_game->m_window->mRenderer, m_game->resource_manager->getAsset("tileset"), m_game->resource_manager->getAsset("font"), btndeal);
+	else if (_state == keep_or_discard) bhelper.drawButton(m_game->m_window->mRenderer, m_game->resource_manager->getAsset("tileset"), m_game->resource_manager->getAsset("font"), btndraw);
 	else if (_state == setbet) {
-		drawButton(btnconfirm);
-		drawButton(btnincrease);
-		drawButton(btndecrease);
+		bhelper.drawButton(m_game->m_window->mRenderer, m_game->resource_manager->getAsset("tileset"), m_game->resource_manager->getAsset("font"), btnconfirm);
+		bhelper.drawButton(m_game->m_window->mRenderer, m_game->resource_manager->getAsset("tileset"), m_game->resource_manager->getAsset("font"), btnincrease);
+		bhelper.drawButton(m_game->m_window->mRenderer, m_game->resource_manager->getAsset("tileset"), m_game->resource_manager->getAsset("font"), btndecrease);
 	}
 
 	//draw scoreboard
@@ -184,7 +154,7 @@ void PlayScene::render(float interpolation) {
 		int vpos = fs / 2;
 		int hpos = SCREEN_WIDTH * SCREENRATIO + (SCREEN_WIDTH * (1 - SCREENRATIO) - fs * (17 + txt.length())) / 2;
 
-		drawBox(20, hpos, vpos, fs * (17 + txt.length()), fs * 2);
+		box.drawBox(m_game->m_window->mRenderer, m_game->resource_manager->getAsset("tileset"), 20, hpos, vpos, fs * (17 + txt.length()), fs * 2);
 		font.renderText(m_game->m_window->mRenderer, "bank", hpos + fs / 2, vpos + fs / 2, m_game->resource_manager->getAsset("font"), white, fs);
 		font.renderText(m_game->m_window->mRenderer, fill(to_string(displayedbank), 6, "0"), hpos + fs / 2 + fs * 5, vpos + fs / 2, m_game->resource_manager->getAsset("font"), pink, fs);
 
@@ -215,26 +185,32 @@ void PlayScene::render(float interpolation) {
 			else font.renderText(m_game->m_window->mRenderer, LABEL[i] + txt, hpos, vpos + fs * i, m_game->resource_manager->getAsset("font"), yellow, fs);
 		}
 
+		SDL_Rect heartTexture = { 0, 0, HEARTSIZE, HEARTSIZE };
+		SDL_Rect heartResize = { hpos - 3, vpos + fs * 11, fs, fs };
+		SDL_RenderCopyEx(m_game->m_window->mRenderer, m_game->resource_manager->getAsset("heart"), &heartTexture, &heartResize, NULL, NULL, SDL_FLIP_NONE);
 		if (_level < MAXLEVEL) {
-			font.renderText(m_game->m_window->mRenderer, "Affec.", hpos + fs * 1, vpos + fs * 10, m_game->resource_manager->getAsset("font"), yellow, fs);
-
-			int xpbarwidth = ((fs * 8) - 3) * ((double)_currentxp / (double)_nextxp);
-			SDL_Rect xpbaroutline = { hpos , vpos + fs * 11, fs * 8, fs };
+			int xpbarwidth = ((fs * 7) - 3) * ((double)_currentxp / (double)_nextxp);
+			SDL_Rect xpbaroutline = { hpos + fs, vpos + fs * 11, fs * 7, fs };
 			SDL_RenderDrawRect(LWindow::getInstance()->mRenderer, &xpbaroutline);
 
 			if (xpbarwidth > 0) {
-				SDL_Rect xpbarlight = { hpos + 1, vpos + 1 + (fs * 11), xpbarwidth - 2, fs / 2 };
+				SDL_Rect xpbarlight = { hpos + fs + 1, vpos + 1 + (fs * 11), xpbarwidth - 2, fs / 2 };
 				SDL_SetRenderDrawColor(LWindow::getInstance()->mRenderer, 255, 255, 255, 255);
 				SDL_RenderFillRect(LWindow::getInstance()->mRenderer, &xpbarlight);
 
-				SDL_Rect xpbarshadow = { hpos + 3, vpos + (fs * 11.5), xpbarwidth - 1, fs / 2 - 1 };
+				SDL_Rect xpbarshadow = { hpos + fs + 3, vpos + (fs * 11.5), xpbarwidth - 1, fs / 2 - 1 };
 				SDL_SetRenderDrawColor(LWindow::getInstance()->mRenderer, 0, 0, 0, 255);
 				SDL_RenderFillRect(LWindow::getInstance()->mRenderer, &xpbarshadow);
 
-				SDL_Rect xpbar = { hpos + 2, vpos + 2 + (fs * 11), xpbarwidth - 1, fs - 5 };
+				SDL_Rect xpbar = { hpos + fs + 2, vpos + 2 + (fs * 11), xpbarwidth - 1, fs - 5 };
 				SDL_SetRenderDrawColor(LWindow::getInstance()->mRenderer, 102, 2, 60, 255);
 				SDL_RenderFillRect(LWindow::getInstance()->mRenderer, &xpbar);
 			}
+		}
+		else {
+			SDL_Rect xpbaroutline = { hpos + fs, vpos + fs * 11, fs * 7, fs };
+			SDL_RenderDrawRect(LWindow::getInstance()->mRenderer, &xpbaroutline);
+			font.renderText(m_game->m_window->mRenderer, "max", hpos + (fs * 3), vpos + (fs * 11) - 2, m_game->resource_manager->getAsset("font"), pink, fs);
 		}
 
 		if (debug) font.renderText(m_game->m_window->mRenderer, "debug on", hpos, vpos + fs * 12.5, m_game->resource_manager->getAsset("font"), red, fs);
@@ -253,10 +229,13 @@ void PlayScene::render(float interpolation) {
 
 		SDL_RenderCopyEx(m_game->m_window->mRenderer, m_game->resource_manager->getAsset("dealer"), &dealerTexture, &dealerResize, NULL, NULL, SDL_FLIP_NONE);
 
-		font.renderText(m_game->m_window->mRenderer, "Game Over!", (SCREEN_WIDTH - FONTSIZE * 10) / 2, vpos / 2, m_game->resource_manager->getAsset("font"), super, FONTSIZE);
+		font.renderText(m_game->m_window->mRenderer, "game over!", (SCREEN_WIDTH - FONTSIZE * 10) / 2, vpos / 2, m_game->resource_manager->getAsset("font"), super, FONTSIZE);
 
-		drawBox(20, (SCREEN_WIDTH - FONTSIZE * 13) / 2 - FONTSIZE / 2, vpos + dealerwidth + FONTSIZE / 2, FONTSIZE * 14, FONTSIZE * 2);
-		font.renderText(m_game->m_window->mRenderer, "See you again", (SCREEN_WIDTH - FONTSIZE * 13) / 2, vpos + dealerwidth + FONTSIZE, m_game->resource_manager->getAsset("font"), logo, FONTSIZE);
+		box.drawBox(m_game->m_window->mRenderer, m_game->resource_manager->getAsset("tileset"), 20, (SCREEN_WIDTH - FONTSIZE * 13) / 2 - FONTSIZE / 2, vpos + dealerwidth + FONTSIZE / 2, FONTSIZE * 14, FONTSIZE * 2);
+		font.renderText(m_game->m_window->mRenderer, "see you again", (SCREEN_WIDTH - FONTSIZE * 13) / 2, vpos + dealerwidth + FONTSIZE, m_game->resource_manager->getAsset("font"), logo, FONTSIZE);
+
+		std::string txt = "xp earned:" + std::to_string(_totalxp);
+		font.renderText(m_game->m_window->mRenderer, txt, (SCREEN_WIDTH - FONTSIZE * txt.length()) / 2, vpos + dealerwidth + FONTSIZE * 3, m_game->resource_manager->getAsset("font"), white, FONTSIZE);
 
 		std::string timer = "" + to_string((int)round((_nexttick - _tick) / 3 + 1));
 
@@ -270,14 +249,14 @@ void PlayScene::render(float interpolation) {
 		int vpos = (SCREEN_HEIGHT - (dealerwidth + fs * 11.75)) / 2 + FONTSIZE / 2;
 		int hpos = (SCREEN_WIDTH * SCREENRATIO);
 
-		drawBox(20, hpos - FONTSIZE / 2, vpos - FONTSIZE / 2, FONTSIZE * 12, FONTSIZE * 2);
+		box.drawBox(m_game->m_window->mRenderer, m_game->resource_manager->getAsset("tileset"), 20, hpos - FONTSIZE / 2, vpos - FONTSIZE / 2, FONTSIZE * 12, FONTSIZE * 2);
 		font.renderText(m_game->m_window->mRenderer, "Select bet!", hpos, vpos, m_game->resource_manager->getAsset("font"), logo, FONTSIZE);
 	}
 
 	//draw messages
 	for (int i = 0; i < _messages.size(); i++) {
 		_messages[i].y += _messages[i].delta;
-		drawBox(20, _messages[i].x - _messages[i].size / 2, _messages[i].y - _messages[i].size / 2, _messages[i].message.length() * _messages[i].size + _messages[i].size, _messages[i].size * 2);
+		box.drawBox(m_game->m_window->mRenderer, m_game->resource_manager->getAsset("tileset"), 20, _messages[i].x - _messages[i].size / 2, _messages[i].y - _messages[i].size / 2, _messages[i].message.length() * _messages[i].size + _messages[i].size, _messages[i].size * 2);
 		font.renderText(m_game->m_window->mRenderer, _messages[i].message, _messages[i].x, _messages[i].y, m_game->resource_manager->getAsset("font"), _messages[i].type, _messages[i].size);
 	}
 
@@ -286,14 +265,14 @@ void PlayScene::render(float interpolation) {
 		std::string txt = "quit to title?";
 		int width = (txt.length() + 2) * FONTSIZE;
 		int height = FONTSIZE * 4.5;
-		drawBox(20, (SCREEN_WIDTH - width) / 2, (SCREEN_HEIGHT - height) / 2, width, height);
+		box.drawBox(m_game->m_window->mRenderer, m_game->resource_manager->getAsset("tileset"), 20, (SCREEN_WIDTH - width) / 2, (SCREEN_HEIGHT - height) / 2, width, height);
 		font.renderText(m_game->m_window->mRenderer, txt, (SCREEN_WIDTH - width) / 2 + (FONTSIZE), (SCREEN_HEIGHT - height) / 2 + (FONTSIZE / 2), m_game->resource_manager->getAsset("font"), logo, FONTSIZE);
-		drawButton(btnquityes);
-		drawButton(btnquitno);
+		bhelper.drawButton(m_game->m_window->mRenderer, m_game->resource_manager->getAsset("tileset"), m_game->resource_manager->getAsset("font"), btnquityes);
+		bhelper.drawButton(m_game->m_window->mRenderer, m_game->resource_manager->getAsset("tileset"), m_game->resource_manager->getAsset("font"), btnquitno);
 	}
 
 	//Update screen
-	SDL_RenderPresent(LWindow::getInstance()->mRenderer);
+	SDL_RenderPresent(m_game->m_window->mRenderer);
 }
 
 void PlayScene::update() {
@@ -302,33 +281,12 @@ void PlayScene::update() {
 	if (demo) {
 		if (!debug) --demo_timeout;
 		if (demo_timeout < 0) {
-			std::fill(std::begin(hold), std::end(hold), false);
-			outcome = nothing;
-			bank = 500;
-			bet = defaultbet;
-			displayedbank = bank;
-			_nexttick = _tick + DEMO_DELAY;
-			_dealer = 0;
-			demo = false;
-			_level = 0;
-			_currentxp = 0;
-			//demo_timeout = 300;
-			_messages.clear();
-			_state = title;
+			m_game->event_manager->trigger(PlayEnds(_dealer, _level, _totalxp));
+			return;
 		}
 	}
 
-	if (_state == title && _nexttick < _tick) {
-		demo = true;
-		demo_timeout = 150;
-		bank = 500;
-		bet = defaultbet;
-		displayedbank = bank;
-		_dealer = rand() % MAXDEALER;
-		_nexttick = _tick + 5;
-		_state = deal;
-	}
-	else if (demo && _state == deal && _nexttick < _tick) {
+	if (demo && _state == deal && _nexttick < _tick) {
 		bank -= bet;
 		hand.clear();
 		shoe.shuffle();
@@ -373,7 +331,10 @@ void PlayScene::update() {
 			bank += bet * PAYOUT[outcome];
 		}
 
-		if (_level < MAXLEVEL) _currentxp += 5 * (bet / 250.0);
+		if (_level < MAXLEVEL) {
+			_currentxp += 5 * (bet / 250.0);
+			_totalxp += 5 * (bet / 250.0);
+		}
 
 		_state = reset;
 	}
@@ -398,17 +359,13 @@ void PlayScene::update() {
 		}
 	}
 	else if (_state == gameover && _nexttick < _tick) {
-		bank = 500;
-		bet = defaultbet;
-		displayedbank = bank;
-		_nexttick = _tick + DEMO_DELAY;
-		demo = false;
-		_dealer = 0;
-		_level = 0;
-		_currentxp = 0;
-		_nextxp = 10;
-		//demo_timeout = 300;
-		_state = title;
+		if (debug) {
+			_totalxp = 0;
+			start_demo();
+			return;
+		}
+		m_game->event_manager->trigger(PlayEnds(_dealer, _level, _totalxp));
+		return;
 	}
 
 	//update messages
@@ -441,28 +398,14 @@ void PlayScene::handleEvents(SDL_Event& e) {
 		btndecrease.enabled = !show_quit_confirmation;
 	}
 	else if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT) {
-		if (demo) demo_timeout = -1;
-		else if (_state == title) {
-			_state = setbet;
-			_dealer = rand() % MAXDEALER;
-			//std::fill(std::begin(hold), std::end(hold), false);
+		if (demo) {
+			m_game->event_manager->trigger(PlayEnds(_dealer, _level, _totalxp));
+			return;
 		}
 		else if (show_quit_confirmation) {
 			if (btnquityes.check(e.motion.x, e.motion.y)) {
-				show_quit_confirmation = false;
-				std::fill(std::begin(hold), std::end(hold), false);
-				_messages.clear();
-				bank = 500;
-				bet = defaultbet;
-				displayedbank = bank;
-				_nexttick = _tick + DEMO_DELAY;
-				demo = false;
-				_level = 0;
-				_currentxp = 0;
-				_nextxp = 10;
-				outcome = nothing;
-				//demo = false;
-				_state = title;
+				m_game->event_manager->trigger(PlayEnds(_dealer, _level, _totalxp));
+				return;
 			}
 			else if (btnquitno.check(e.motion.x, e.motion.y)) {
 				show_quit_confirmation = false;
@@ -549,51 +492,27 @@ void PlayScene::handleEvents(SDL_Event& e) {
 			case SDLK_n:
 				_dealer = (_dealer + 1) % MAXDEALER;
 				break;
+			case SDLK_l:
+				_level = (_level + 1) % (MAXLEVEL + 1);
+				break;
 			}
 		}
 	}
 }
 
-void PlayScene::drawBox(int color, int x, int y, int width, int height) {
-	SDL_Texture* tileset = m_game->resource_manager->getAsset("tileset");
-	SDL_Rect texture = { 64 * (color % 8), 64 * (int)floor(color / 8), 16, 16 };//top left corner
-	SDL_Rect resize = { x, y, 16, 16 };
-	SDL_RenderCopyEx(m_game->m_window->mRenderer, tileset, &texture, &resize, 0.0, NULL, SDL_FLIP_NONE);//top left corner
-
-	resize = { x, y + height - 16, 16, 16 };
-	SDL_RenderCopyEx(m_game->m_window->mRenderer, tileset, &texture, &resize, 0.0, NULL, SDL_FLIP_VERTICAL);//bottom left 
-
-	resize = { x + width - 16, y, 16, 16 };
-	SDL_RenderCopyEx(m_game->m_window->mRenderer, tileset, &texture, &resize, 0.0, NULL, SDL_FLIP_HORIZONTAL);//top right corner
-
-	resize = { x + width - 16, y + height - 16, 16, 16 };
-	SDL_RenderCopyEx(m_game->m_window->mRenderer, tileset, &texture, &resize, 0.0, NULL, SDL_RendererFlip(SDL_FLIP_VERTICAL | SDL_FLIP_HORIZONTAL));//bottom right corner
-
-	texture = { 64 * (color % 8) + 16, 64 * (int)floor(color / 8), 16, 16 };
-	resize = { x + 16, y, width - 32, 16 };
-	//m_game->resource_manager->getAsset("tileset")->render(, &texture, &resize, 0.0, NULL, SDL_FLIP_NONE);//top
-	SDL_RenderCopyEx(m_game->m_window->mRenderer, tileset, &texture, &resize, 0.0, NULL, SDL_FLIP_NONE);//top
-
-	resize = { x + 16, y + height - 16, width - 32, 16 };
-	SDL_RenderCopyEx(m_game->m_window->mRenderer, tileset, &texture, &resize, 0.0, NULL, SDL_FLIP_VERTICAL);//bottom
-
-	texture = { 64 * (color % 8), 64 * (int)floor(color / 8) + 16, 16, 16 };
-	resize = { x, y + 16, 16, height - 32 };
-	SDL_RenderCopyEx(m_game->m_window->mRenderer, tileset, &texture, &resize, 0.0, NULL, SDL_FLIP_NONE);//left
-
-	resize = { x + width - 16, y + 16, 16, height - 32 };
-	SDL_RenderCopyEx(m_game->m_window->mRenderer, tileset, &texture, &resize, 0.0, NULL, SDL_FLIP_HORIZONTAL);//right
-
-	texture = { 64 * (color % 8) + 16, 64 * (int)floor(color / 8) + 16, 16, 16 };
-	resize = { x + 16, y + 16, width - 32, height - 32 };
-	SDL_RenderCopyEx(m_game->m_window->mRenderer, tileset, &texture, &resize, 0.0, NULL, SDL_FLIP_NONE);//fill
-}
-
-void PlayScene::drawButton(const Button button) {
-	drawBox((!button.enabled ? 22 : ((button.over) ? 10 : 12)), button.x, button.y, button.width, button.height);
-	int fs = button.height / 2;
-	BitmapFont font;
-	font.renderText(m_game->m_window->mRenderer, button.txt, button.x + (button.width - fs * button.txt.length()) / 2, button.y + fs / 2, m_game->resource_manager->getAsset("font"), ((button.over || !button.enabled) ? 8 : 1), fs);
+void PlayScene::start_demo() {
+	demo = true;
+	demo_timeout = DEMO_TIMEOUT;
+	bank = 500;
+	bet = defaultbet;
+	displayedbank = bank;
+	_dealer = rand() % MAXDEALER;
+	_currentxp = 0;
+	_nextxp = 0;
+	_totalxp = 0;
+	_level = 0;
+	_nexttick = _tick + 5;
+	_state = deal;
 }
 
 std::string PlayScene::translate_outcome(Outcome outcome) {
