@@ -1,6 +1,7 @@
 WindowTitle = Video Poker
 WindowWidth = 1280
 WindowHeight = 720
+Fullscreen = false
 UpdatesPerSecond = 5
 CardTexture = Data/Textures/cards.png
 CardWidth = 71
@@ -15,7 +16,7 @@ HeartTexture = Data/Textures/heart_small.png
 HeartSize = 64
 SplashTimeout = 20
 DemoTimeout = 150
-CharacterTexture = Data/Textures/characters_small_pixelated.png
+CharacterTexture = Data/Textures/cards_all_small_pixelated.png
 CharacterWidth = 256
 CharacterHeight = 384
 CharacterSelectTimeout = 100

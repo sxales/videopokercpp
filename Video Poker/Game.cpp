@@ -20,6 +20,8 @@ Game::Game(const std::string config) {
 
 	create_window();
 
+	if (config_manager->getBool("Fullscreen") && !m_window->isFullScreen()) m_window->toggleFullScreen();
+
 	//pre-load iamge assets
 	resource_manager = new ResourceManager(m_window->mRenderer);
 	resource_manager->addAsset("characters", config_manager->getString("CharacterTexture"));
