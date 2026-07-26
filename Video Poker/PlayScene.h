@@ -70,7 +70,7 @@ private:
 	Deck shoe;
 	std::vector<Card> hand;
 
-	Outcome evaluate();
+	Outcome evaluate(std::vector<Card> _hand);
 	std::string fill(std::string, int n, std::string pad);
 	std::string translate_outcome(Outcome outcome);
 	void process(Outcome _outcome);

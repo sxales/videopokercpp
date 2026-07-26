@@ -1,4 +1,5 @@
 #include <time.h>
+#include <assert.h>
 
 #include "Game.h"
 #include "PlayScene.h"
@@ -14,6 +15,30 @@
 
 PlayScene::PlayScene(Game* m_game) : Scene(m_game) {
 	srand(time(NULL));
+
+	//test cases
+	{
+		assert(evaluate({ Card(club, 1, 1) , Card(club, 13, 1), Card(club, 12, 1), Card(club, 11, 1), Card(club, 10, 1) }) == royal_flush);
+		assert(evaluate({ Card(club, 9, 1) , Card(club, 10, 1), Card(club, 11, 1), Card(club, 12, 1), Card(club, 13, 1) }) == straight_flush);
+		assert(evaluate({ Card(club, 1, 1) , Card(diamond, 1, 1), Card(heart, 1, 1), Card(spade, 1, 1), Card(club, 10, 1) }) == four_of_a_kind);
+		assert(evaluate({ Card(club, 1, 1) , Card(diamond, 1, 1), Card(heart, 1, 1), Card(club, 8, 1), Card(spade, 8, 1) }) == full_house);
+		assert(evaluate({ Card(club, 1, 1) , Card(club, 3, 1), Card(club, 5, 1), Card(club, 7, 1), Card(club, 9, 1) }) == Outcome::flush);
+		assert(evaluate({ Card(diamond, 1, 1) , Card(club, 13, 1), Card(club, 12, 1), Card(club, 11, 1), Card(club, 10, 1) }) == straight);//ace high
+		assert(evaluate({ Card(diamond, 9, 1) , Card(club, 13, 1), Card(club, 12, 1), Card(club, 11, 1), Card(club, 10, 1) }) == straight);//normal
+		assert(evaluate({ Card(club, 1, 1) , Card(diamond, 1, 1), Card(heart, 1, 1), Card(club, 8, 1), Card(spade, 10, 1) }) == three_of_a_kind);
+		assert(evaluate({ Card(club, 1, 1) , Card(diamond, 1, 1), Card(heart, 7, 1), Card(club, 8, 1), Card(spade, 8, 1) }) == two_pair);
+		assert(evaluate({ Card(club, 1, 1) , Card(diamond, 1, 1), Card(heart, 7, 1), Card(club, 8, 1), Card(spade, 10, 1) }) == jacks_or_better);
+		assert(evaluate({ Card(club, 1, 1) , Card(diamond, 3, 1), Card(heart, 7, 1), Card(club, 8, 1), Card(spade, 8, 1) }) == low_pair);
+		assert(evaluate({ Card(club, 1, 1) , Card(diamond, 3, 1), Card(heart, 7, 1), Card(club, 8, 1), Card(spade, 10, 1) }) == high_card);
+		assert(evaluate({ Card(heart, 2, 1) , Card(club, 3, 1), Card(club, 4, 1), Card(club, 5, 1), Card(club, 9, 1) }) == four_card_flush);//four card flush and four card straight but not a four card straight flush
+		assert(evaluate({ Card(diamond, 5, 1) , Card(club, 13, 1), Card(club, 12, 1), Card(club, 11, 1), Card(heart, 10, 1) }) == four_card_straight);
+		assert(evaluate({ Card(diamond, 5, 1) , Card(club, 13, 1), Card(club, 12, 1), Card(club, 11, 1), Card(club, 10, 1) }) == four_card_straight_flush);
+		assert(evaluate({ Card(heart, 2, 1) , Card(club, 3, 1), Card(club, 8, 1), Card(club, 7, 1), Card(diamond, 9, 1) }) == three_card_flush);//three card flush and three card straight but not a three card straight flush
+		assert(evaluate({ Card(diamond, 5, 1) , Card(spade, 7, 1), Card(club, 8, 1), Card(club, 9, 1), Card(heart, 3, 1) }) == three_card_straight);
+		assert(evaluate({ Card(diamond, 5, 1) , Card(club, 7, 1), Card(club, 8, 1), Card(club, 9, 1), Card(heart, 3, 1) }) == three_card_straight_flush);//normal
+		assert(evaluate({ Card(diamond, 5, 1) , Card(club, 1, 1), Card(club, 13, 1), Card(club, 12, 1), Card(heart, 3, 1) }) == three_card_straight_flush);//ace high
+		assert(evaluate({ Card(club, 2, 1) , Card(heart, 3, 1), Card(spade, 5, 1), Card(diamond, 7, 1), Card(club, 9, 1) }) == nothing);
+	}
 
 	SCREEN_WIDTH = m_game->config_manager->getInt("WindowWidth");
 	SCREEN_HEIGHT = m_game->config_manager->getInt("WindowHeight");
@@ -278,7 +303,7 @@ void PlayScene::update() {
 		
 	}
 	else if (demo && _state == flip && _nexttick < _tick) {
-		process(evaluate());
+		process(evaluate(hand));
 		_nexttick = _tick + 5;
 		_state = keep_or_discard;
 	}
@@ -298,7 +323,7 @@ void PlayScene::update() {
 	}
 	else if (_state == score) {
 		_nexttick = _tick + SCORE_DELAY - 2;
-		outcome = evaluate();
+		outcome = evaluate(hand);
 		
 		int fs = (SCREEN_WIDTH * SCREENRATIO) / 9;
 		int dealerwidth = SCREEN_WIDTH * SCREENRATIO * 0.85;
@@ -417,7 +442,7 @@ void PlayScene::handleEvents(SDL_Event& e) {
 				int vpos = (SCREEN_HEIGHT - (dealerwidth + fs * 11.75)) / 2 + FONTSIZE / 2;
 				int hpos = (SCREEN_WIDTH * SCREENRATIO);
 
-				Outcome _outcome = evaluate();
+				Outcome _outcome = evaluate(hand);
 
 				process(_outcome);
 
@@ -552,7 +577,7 @@ void PlayScene::process(Outcome _outcome) {
 	}
 
 	if (_outcome == royal_flush || _outcome == straight_flush || _outcome == straight || _outcome == Outcome::flush || _outcome == full_house) {
-		std::fill(std::begin(hold), std::end(hold), true);
+		std::fill(std::begin(hold), std::end(hold), true);//keep entire hand
 	}
 	else if (_outcome == four_of_a_kind || _outcome == three_of_a_kind || _outcome == two_pair || _outcome == jacks_or_better || _outcome == low_pair) {
 		int face = -1;
@@ -655,13 +680,14 @@ void PlayScene::process(Outcome _outcome) {
 	}
 }
 
-Outcome PlayScene::evaluate() {
-	int suits[4] = {0, 0, 0, 0};
-	int faces[14] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+Outcome PlayScene::evaluate(std::vector<Card> _hand) {
+	int suits[4] = { 0, 0, 0, 0 };
+	int faces[15] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 	bool isFlush = false;
 	for (int i = 0; i < 5; i++) {
-		faces[hand[i].face]++;
-		if (++suits[hand[i].suit] == 5) isFlush = true;
+		faces[_hand[i].face]++;
+		if (_hand[i].face == 1) faces[14]++;//ace are 1 and 14
+		if (++suits[_hand[i].suit] == 5) isFlush = true;
 	}
 	bool straight = false;
 	bool four_straight = false;
@@ -670,7 +696,7 @@ Outcome PlayScene::evaluate() {
 	bool pair = false;
 	bool jacks = false;
 	int c = 0;
-	for (int i = 0; i < 14; i++) {
+	for (int i = 0; i < 15; i++) {
 		if (faces[i] == 1) {
 			//c++;
 			if (++c == 5) straight = true;
@@ -678,6 +704,8 @@ Outcome PlayScene::evaluate() {
 			else if (c == 3) three_straight = true;
 		}
 		else c = 0;
+
+		if (i == 14) continue;//we already checked aces (1) for sets so we don't want to check them again
 
 		if (faces[i] == 4) return four_of_a_kind;
 		else if (faces[i] == 3) three = true;
@@ -687,7 +715,6 @@ Outcome PlayScene::evaluate() {
 			if (i > 10 || i == 1) jacks = true;
 		}
 	}
-	if (c == 4 && faces[1] == 1) straight = true;
 
 	bool four_flush = suits[0] == 4 || suits[1] == 4 || suits[2] == 4 || suits[3] == 4;
 	bool three_flush = suits[0] == 3 || suits[1] == 3 || suits[2] == 3 || suits[3] == 3;
@@ -698,8 +725,8 @@ Outcome PlayScene::evaluate() {
 		//possible partial straight flush
 		std::vector<std::vector<int>> suited_hand(4);
 		for (int i = 0; i < 5; i++) {
-			suited_hand[hand[i].suit].push_back(hand[i].face);
-			if (hand[i].face == 1) suited_hand[hand[i].suit].push_back(14);//ace are 1 and 14
+			suited_hand[_hand[i].suit].push_back(_hand[i].face);
+			if (_hand[i].face == 1) suited_hand[_hand[i].suit].push_back(14);//ace are 1 and 14
 		}
 
 		for (auto& s : suited_hand) {
@@ -714,17 +741,12 @@ Outcome PlayScene::evaluate() {
 				if (c == 4) four_straight_flush = true;
 				else if (c == 3) three_straight_flush = true;
 			}
-			
-			//if (c == 3 && faces[1] == 1) four_straight_flush = true;
-			//else if (c == 2 && faces[1] == 1) three_straight_flush = true;
 		}
 	}
 
-	//console.log(faces);
-
 	int pay_cards = faces[1] + faces[13] + faces[12] + faces[11];
 
-	if (faces[1] == 1 && faces[13] == 1 && faces[12] == 1 && faces[11] == 1 && faces[10] == 1 && Outcome::flush) return royal_flush;
+	if (faces[1] == 1 && faces[13] == 1 && faces[12] == 1 && faces[11] == 1 && faces[10] == 1 && isFlush) return royal_flush;
 	else if (straight && isFlush) return straight_flush;
 	else if (isFlush) return Outcome::flush;
 	else if (straight) return Outcome::straight;
